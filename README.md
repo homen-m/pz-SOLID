@@ -1,71 +1,32 @@
-# Practical lesson pz-SOLID  
-# Практична реалізація SOLID принципів  
+# Практична реалізація SOLID: Система управління автопарком (Fleet Management)
 
-> У цьому занятті студенти отримують практичні навички застосування SOLID принципів під час рефакторингу існуючого коду.  
-> Мета — створити гнучку, масштабовану та чисту архітектуру шляхом застосування SRP, OCP, LSP, ISP та DIP.
+![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
+![Jest](https://img.shields.io/badge/Jest-C21325?style=for-the-badge&logo=jest&logoColor=white)
 
----
-
-## What need to do:
-* Провести аналіз вихідного «анти-SOLID» коду  
-* Визначити порушення кожного SOLID принципу  
-* Виконати рефакторинг згідно з:
-  * SRP — Single Responsibility Principle  
-  * OCP — Open/Closed Principle  
-  * LSP — Liskov Substitution Principle  
-  * ISP — Interface Segregation Principle  
-  * DIP — Dependency Inversion Principle  
-* Створити відповідні інтерфейси й абстракції  
-* Усунути зайві або циклічні залежності  
-* Додати мінімальний набір unit-тестів після рефакторингу  
+## Мета проєкту
+Продемонструвати навички рефакторингу "брудного" коду (Анти-патерну) шляхом імплементації п'яти принципів SOLID на прикладі системи управління автопарком та логістикою.
 
 ---
 
-## Acceptance criteria
-* Реалізація на мові Typescript 
-* Студент розуміє кожен SOLID принцип та пояснює його застосування  
-* Увесь вихідний код проаналізовано  
-* Усі порушення SOLID знайдено та описано  
-* Після рефакторингу:
-  * Кожен клас має одну відповідальність (SRP)  
-  * Код розширюється через нові класи, а не редагування існуючих (OCP)  
-  * Класи-нащадки повністю заміщають базові (LSP)  
-  * Інтерфейси невеликі й специфічні (ISP)  
-  * Залежності реалізовані через абстракції (DIP)  
-* Код структурований, логічний та зрозумілий  
-* Усі тести проходять успішно  
-* Звіт оформлений у Markdown (README.md)
+## Аналіз порушень та рефакторинг
 
-## Directory Structure
-```
-├── pz-SOLID
-│   ├── src
-│   │   ├── original          # код із навмисними порушеннями SOLID
-│   │   ├── refactored        # код після рефакторингу
-│   │   ├── interfaces        # абстракції та інтерфейси
-│   ├── tests
-│   │   ├── refactored.spec.js
-│   ├── .editorconfig
-│   ├── .gitignore
-│   ├── jest.config.js
-│   ├── package.json
-│   ├── package-lock.json
-│   ├── README.md
-└──
-```
+У початковому варіанті системи (`src/original/badFleetManager.ts`) було виявлено низку критичних архітектурних проблем. Нижче описано, як вони були усунуті:
 
-## Useful links
+| Принцип | Виявлена проблема (Анти-патерн) | Рішення після рефакторингу |
+| :--- | :--- | :--- |
+| **SRP** | Клас `BadFleetManager` маршрутизував транспорт, звертався до БД (MongoDb) та писав у Slack. | Створено клас `FleetDispatcher`, що займається *лише* бізнес-логікою відправки. Робота з БД та сповіщення винесені в окремі класи. |
+| **OCP** | Метод диспетчеризації перевіряв тип транспорту через `if-else` (`diesel_truck` або `electric_van`). | Створено поліморфний метод `startRoute()` в базовому класі. Додавання дронів чи потягів тепер не вимагає редагування ядра диспетчера. |
+| **LSP** | Клас електрофургону наслідував диспетчера і викидав виняток `Error` при виклику методу `refuelDiesel()`. | Усі транспортні засоби наслідують загальний абстрактний клас `BaseVehicle`, який містить лише універсальні методи (наприклад, `loadCargo()`). |
+| **ISP** | Загальний інтерфейс `IVehicleTasks` змушував електромобілі реалізовувати заправку дизелем, а ДВЗ — зарядку струмом. | Інтерфейси розділено за типами рушіїв: `ICombustionVehicle` та `IElectricVehicle`. Кожен клас реалізує лише те, що фізично підтримує. |
+| **DIP** | Жорстка інстанціація `MongoDbDatabase` та `SlackBot` всередині класу через оператор `new`. | `FleetDispatcher` тепер працює через абстракції (`IFleetRepository`, `IDispatchNotifier`), що ін'єктуються через конструктор. |
 
-[SOLID Principles Explained](https://www.baeldung.com/solid-principles)
+---
 
-[SOLID: The First 5 Principles of Object-Oriented Design](https://www.freecodecamp.org/news/solid-principles-explained-in-plain-english/)
+## Інструкція із запуску
 
-[JavaScript SOLID: Реалізація принципів](https://khalilstemmler.com/articles/solid-principles/)
+Для перевірки роботи архітектури та запуску тестів:
 
-[Clean Code Concepts Adapted for JavaScript](https://github.com/ryanmcdermott/clean-code-javascript)
-
-[Dependency Injection in JavaScript](https://javascript.plainenglish.io/dependency-injection-in-javascript-1b82a8101c1a)
-
-
-
-
+1. **Встановіть залежності проєкту:**
+   ```bash
+   npm install
+   npm test
